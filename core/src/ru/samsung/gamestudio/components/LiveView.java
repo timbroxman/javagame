@@ -26,9 +26,12 @@ public class LiveView extends View {
 
     @Override
     public void draw(SpriteBatch batch) {
-        if (leftLives > 0) batch.draw(texture, x + (texture.getWidth() + livePadding), y, width, height);
-        if (leftLives > 1) batch.draw(texture, x, y, width, height);
-        if (leftLives > 2) batch.draw(texture, x + 2 * (texture.getWidth() + livePadding), y, width, height);
+        // Рисуем сердца слева направо: максимум 3
+        int heartsToDraw = Math.max(0, Math.min(leftLives, 3));
+        for (int i = 0; i < heartsToDraw; i++) {
+            float drawX = x + i * (texture.getWidth() + livePadding);
+            batch.draw(texture, drawX, y, width, height);
+        }
     }
 
     @Override

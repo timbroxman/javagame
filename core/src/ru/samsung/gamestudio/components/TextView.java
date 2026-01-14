@@ -3,11 +3,13 @@ package ru.samsung.gamestudio.components;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import ru.samsung.gamestudio.GameSettings;
 
 public class TextView extends View{
 
     protected BitmapFont font;
     protected String text;
+    protected boolean centered = false;
 
     public TextView(BitmapFont font, float x, float y) {
         super(x, y);
@@ -30,9 +32,17 @@ public class TextView extends View{
         height = glyphLayout.height;
     }
 
+    public void setCentered(boolean centered) {
+        this.centered = centered;
+    }
+
     @Override
     public void draw(SpriteBatch batch) {
-        font.draw(batch, text, x, y + height);
+        float drawX = x;
+        if (centered) {
+            drawX = (GameSettings.SCREEN_WIDTH - width) / 2f;
+        }
+        font.draw(batch, text, drawX, y + height);
     }
 
     @Override

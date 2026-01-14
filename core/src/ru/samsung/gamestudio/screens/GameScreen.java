@@ -1,6 +1,7 @@
 package ru.samsung.gamestudio.screens;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector3;
@@ -111,6 +112,7 @@ public class GameScreen extends ScreenAdapter {
 
         fullBlackoutView = new ImageView(0, 0, GameResources.BLACKOUT_FULL_IMG_PATH);
         pauseTextView = new TextView(myGdxGame.largeWhiteFont, 282, 842, "Pause");
+        pauseTextView.setCentered(true);
         homeButton = new ButtonView(
                 138, 695,
                 200, 70,
@@ -126,6 +128,7 @@ public class GameScreen extends ScreenAdapter {
 
         recordsListView = new RecordsListView(myGdxGame.commonWhiteFont, 690);
         recordsTextView = new TextView(myGdxGame.largeWhiteFont, 206, 842, "Last records");
+        recordsTextView.setCentered(true);
         homeButton2 = new ButtonView(
                 280, 365,
                 160, 70,
@@ -146,12 +149,8 @@ public class GameScreen extends ScreenAdapter {
         handleInput();
 
         if (gameSession.state == GameState.PLAYING) {
-            // Обновляем движение корабля на основе джойстика
-            com.badlogic.gdx.math.Vector2 direction = joystickView.getDirection();
-            // Мертвая зона уже обработана в джойстике, поэтому просто применяем направление
-            if (direction.len() > 0.01f) { // Очень маленький порог, так как мертвая зона уже применена
-                shipObject.moveByDirection(direction);
-            }
+            // Прямое управление - корабль следует за касанием/курсором
+            // Управление обрабатывается в handleInput()
 
             if (gameSession.shouldSpawnTrash()) {
                 TrashObject trashObject = new TrashObject(
@@ -321,6 +320,7 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void handleInput() {
+        // --- Управление мышью/тачем (прямое управление и кнопки) ---
         if (Gdx.input.isTouched()) {
             myGdxGame.touch = myGdxGame.camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
 
@@ -330,10 +330,9 @@ public class GameScreen extends ScreenAdapter {
                     if (myGdxGame.audioManager.isSoundOn)
                         myGdxGame.audioManager.buttonClickSound.play(0.3f);
                     gameSession.pauseGame();
-                    joystickView.handleTouchUp();
                 } else {
-                    // Обрабатываем джойстик
-                    joystickView.handleTouch(myGdxGame.touch);
+                    // Прямое управление - корабль следует за касанием
+                    shipObject.move(myGdxGame.touch);
                 }
             } else if (gameSession.state == GameState.PAUSED) {
                 if (continueButton.isHit(myGdxGame.touch.x, myGdxGame.touch.y)) {
@@ -353,11 +352,32 @@ public class GameScreen extends ScreenAdapter {
                     myGdxGame.setScreen(myGdxGame.menuScreen);
                 }
             }
+        }
 
-        } else {
-            // Если касание прекратилось, сбрасываем джойстик
-            if (gameSession.state == GameState.PLAYING) {
-                joystickView.handleTouchUp();
+        // --- Управление с клавиатуры (WASD и стрелки) ---
+        if (gameSession.state == GameState.PLAYING) {
+            float x = 0f;
+            float y = 0f;
+
+            // Горизонталь: A / LEFT и D / RIGHT
+            if (Gdx.input.isKeyPressed(Input.Keys.A) || Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+                x -= 1f;
+            }
+            if (Gdx.input.isKeyPressed(Input.Keys.D) || Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
+                x += 1f;
+            }
+
+            // Вертикаль: W / UP и S / DOWN
+            if (Gdx.input.isKeyPressed(Input.Keys.W) || Gdx.input.isKeyPressed(Input.Keys.UP)) {
+                y += 1f;
+            }
+            if (Gdx.input.isKeyPressed(Input.Keys.S) || Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
+                y -= 1f;
+            }
+
+            if (x != 0f || y != 0f) {
+                com.badlogic.gdx.math.Vector2 dir = new com.badlogic.gdx.math.Vector2(x, y).nor();
+                shipObject.moveByDirection(dir);
             }
         }
     }
@@ -393,10 +413,8 @@ public class GameScreen extends ScreenAdapter {
         liveView.draw(myGdxGame.batch);
         pauseButton.draw(myGdxGame.batch);
 
-        // Рисуем джойстик только во время игры
-        if (gameSession.state == GameState.PLAYING) {
-            joystickView.draw(myGdxGame.batch);
-        }
+        // Джойстик больше не используется - управление прямое (корабль следует за
+        // касанием)
 
         // Рисуем эффекты экрана (затемнение, вспышки)
         screenEffects.draw(myGdxGame.batch);
@@ -623,6 +641,8 @@ public class GameScreen extends ScreenAdapter {
         bulletArray.clear();
         enemyBulletArray.clear();
         bonusArray.clear();
+        // Сразу обновляем количество жизней в индикаторе
+        liveView.setLeftLives(shipObject.getLiveLeft());
         previousShipLives = shipObject.getLiveLeft();
         particleSystem.clear();
         lastBossSpawnTime = com.badlogic.gdx.utils.TimeUtils.millis();

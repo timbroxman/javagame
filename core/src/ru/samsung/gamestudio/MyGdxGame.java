@@ -11,6 +11,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.Box2D;
 import com.badlogic.gdx.physics.box2d.World;
 import ru.samsung.gamestudio.managers.AudioManager;
+import ru.samsung.gamestudio.screens.AboutScreen;
 import ru.samsung.gamestudio.screens.GameScreen;
 import ru.samsung.gamestudio.screens.MenuScreen;
 import ru.samsung.gamestudio.screens.SettingsScreen;
@@ -24,6 +25,7 @@ public class MyGdxGame extends Game {
     public BitmapFont largeWhiteFont;
     public BitmapFont commonWhiteFont;
     public BitmapFont commonBlackFont;
+    public BitmapFont russianWhiteFont;
 
     public Vector3 touch;
     public SpriteBatch batch;
@@ -33,6 +35,7 @@ public class MyGdxGame extends Game {
     public GameScreen gameScreen;
     public MenuScreen menuScreen;
     public SettingsScreen settingsScreen;
+    public AboutScreen aboutScreen;
 
     float accumulator = 0;
 
@@ -42,9 +45,10 @@ public class MyGdxGame extends Game {
         Box2D.init();
         world = new World(new Vector2(0, 0), true);
 
-        largeWhiteFont = FontBuilder.generate(48, Color.WHITE, GameResources.FONT_PATH);
-        commonWhiteFont = FontBuilder.generate(24, Color.WHITE, GameResources.FONT_PATH);
-        commonBlackFont = FontBuilder.generate(24, Color.BLACK, GameResources.FONT_PATH);
+        largeWhiteFont = FontBuilder.generate(80, Color.WHITE, GameResources.FONT_PATH);
+        commonWhiteFont = FontBuilder.generate(42, Color.WHITE, GameResources.FONT_PATH);
+        commonBlackFont = FontBuilder.generate(42, Color.BLACK, GameResources.FONT_PATH);
+        russianWhiteFont = FontBuilder.generateWithCyrillic(42, Color.WHITE, GameResources.RUSSIAN_FONT_PATH);
 
         batch = new SpriteBatch();
         camera = new OrthographicCamera();
@@ -54,6 +58,7 @@ public class MyGdxGame extends Game {
         gameScreen = new GameScreen(this);
         menuScreen = new MenuScreen(this);
         settingsScreen = new SettingsScreen(this);
+        aboutScreen = new AboutScreen(this);
 
         setScreen(menuScreen);
     }
